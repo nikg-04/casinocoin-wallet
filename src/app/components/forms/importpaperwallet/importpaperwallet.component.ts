@@ -5,6 +5,7 @@ import { WalletService } from '../../../providers/wallet.service';
 import { LogService } from '../../../providers/log.service';
 import { AppConstants } from '../../../domain/app-constants';
 import { Menu as ElectronMenu, MenuItem as ElectronMenuItem } from "electron"; 
+import { NotificationService } from '../../../providers/notification.service';
 import { ElectronService } from '../../../providers/electron.service';
 import { SelectItem, MenuItem } from 'primeng/primeng';
 import { CSCUtil } from '../../../domain/csc-util';
@@ -27,7 +28,12 @@ export class ImportpaperwalletComponent implements OnInit {
   address: any;
   allAccounts: any;
 
-  constructor(private casinocoinService: CasinocoinService, private walletService: WalletService, private logger: LogService) { }
+  constructor(private casinocoinService: CasinocoinService, 
+              private walletService: WalletService, 
+              private logger: LogService, 
+              private notificationService: NotificationService) {
+    this.logger.debug("### INIT Import Paper Wallet ###");         
+  }
 
   ngOnInit() {
   }
@@ -72,11 +78,11 @@ export class ImportpaperwalletComponent implements OnInit {
         accountID: "", 
         secret: "", 
         encrypted: false
-    };
-    newKeyPair.secret = this.privateKey.trim();
-    newKeyPair.privateKey = this.keypair.privateKey;
-    newKeyPair.publicKey = this.keypair.publicKey;
-    newKeyPair.accountID = this.address;
+      };
+      newKeyPair.secret = this.privateKey.trim();
+      newKeyPair.privateKey = this.keypair.privateKey;
+      newKeyPair.publicKey = this.keypair.publicKey;
+      newKeyPair.accountID = this.address;
 
       this.walletService.addKey(newKeyPair);
       let walletAccount: LokiAccount = {
@@ -91,12 +97,17 @@ export class ImportpaperwalletComponent implements OnInit {
       };
       this.walletService.addAccount(walletAccount);
       this.walletService.encryptAllKeys(this.walletPassword).subscribe( result => {
-          if(result == AppConstants.KEY_FINISHED){
-            this.logger.debug("### Account Created: " + walletAccount.accountID);
-          }
+        this.notificationService.addMessage( { 
+          title: 'Paper Wallet Import', 
+          body: 'The Paper Wallet import is complete.'
         });
+        if(result == AppConstants.KEY_FINISHED){
+          this.logger.debug("### Account Created: " + walletAccount.accountID);
+        }
+      });
       this.logger.debug("### Account Added with Paper Wallet: " + walletAccount.accountID);
-      this.errorMessage = "Paper Wallet Imported Successfully.";
+      this.errorMessage = "Paper Wallet Imported Successfully.";      
+      this.casinocoinService.checkAllAccounts();
       this.label = "";
       this.privateKey = "";
       this.walletPassword = "";
