@@ -53,6 +53,8 @@ export class LoginComponent implements OnInit {
  
     ngOnInit() {
         this.logger.debug("### LoginComponent onInit");
+        // when click X close in Login
+        this.electron.remote.getGlobal("vars").inLogin = true;
         // get available wallets
         this.availableWallets = this.localStorageService.get(AppConstants.KEY_AVAILABLE_WALLETS);
         // get return url from route parameters or default to '/'
@@ -147,6 +149,7 @@ export class LoginComponent implements OnInit {
         this.dialog_visible = false;
         this.electron.remote.getGlobal("vars").exitFromRenderer = true;
         this.electron.remote.getGlobal("vars").exitFromLogin = true;
+        this.electron.remote.getGlobal("vars").inLogin = false;
         this.electron.remote.getCurrentWindow.call( close() );
     }
 

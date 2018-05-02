@@ -25,6 +25,7 @@ let showExitPrompt = true;
 let savedBeforeQuit = false;
 globalTS.vars.exitFromRenderer = false;
 globalTS.vars.exitFromLogin = false;
+globalTS.vars.inLogin = true;
 
 // define auto update url
 let updaterFeedURL = 'https://download.casinocoin.org/update/' + platform + '/' + version;
@@ -224,15 +225,6 @@ function createWindow() {
       showExitPrompt = false;
       savedBeforeQuit = true;
       win.close();
-    } else if(!globalTS.vars.exitFromRenderer){
-      // Prevent the window from closing 
-      e.preventDefault();
-      dialog.showMessageBox({
-          type: 'info',
-          buttons: ['Ok'],
-          title: 'Closing the wallet',
-          message: 'Please close the wallet from the Tools -> Quit menu.'
-      });
     } else {
       if (showExitPrompt) {
           e.preventDefault() // Prevents the window from closing 
@@ -244,15 +236,24 @@ function createWindow() {
           }, function (response) {
               if (response === 0) { // Runs the following if 'Yes' is clicked
                 // on next win.on('close') the app will be finally closed
+                if(!globalTS.vars.inLogin){
+                  win.webContents.send('action', 'disconnect-quit-wallet');
+                }  
                 showExitPrompt = false;
                 win.close();
               }
           });
-      } else if(!savedBeforeQuit) {
+      } else if(globalTS.vars.inLogin){
+        e.preventDefault() 
+        globalTS.vars.exitFromLogin = true;
+        globalTS.vars.inLogin = false;
+        savedBeforeQuit = true;
+        win.close();
+      } else if(!savedBeforeQuit && !globalTS.vars.inLogin) {
         // Prevent the window from closing 
         e.preventDefault();
         if(win != null){
-          ipcMain.on('wallet-closed', (event, arg) => {
+          ipcMain.on('wallet-closed', (event, arg) => { 
             savedBeforeQuit = true;
             win.close();
           });

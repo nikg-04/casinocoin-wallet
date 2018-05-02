@@ -139,6 +139,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.applicationVersion = this.electron.remote.app.getVersion();
     this.backupPath = this.electron.remote.getGlobal("vars").backupPath;
     this.logger.debug("### HOME Backup Path: " + this.backupPath);
+    this.electron.remote.getGlobal("vars").inLogin = false;
     this.electron.ipcRenderer.on("action", (event, arg) => {
       if(arg === "save-wallet"){
         this.logger.debug("### HOME Logout Wallet on Suspend ###");
@@ -154,6 +155,13 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.backupWallet();
         // close and logout
         this.walletService.closeWallet();
+      } else if(arg === "disconnect-quit-wallet"){
+        this.logger.debug("### HOME Save Wallet on X-close ###");
+        // save DB and wallet
+        this.walletService.saveWallet();
+        // disconnect
+        this.casinocoinService.disconnect();
+        this.sessionStorageService.remove(AppConstants.KEY_CURRENT_WALLET);
       }
     });
   }
@@ -464,7 +472,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     // close the Database!
     // this.walletService.closeWallet();
     // Close the windows to cause an application exit
-    this.electron.remote.getGlobal("vars").exitFromRenderer = true;
+    // this.electron.remote.getGlobal("vars").exitFromRenderer = true;
     this.electron.remote.getCurrentWindow.call( close() );
   }
 
