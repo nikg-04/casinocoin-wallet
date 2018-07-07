@@ -475,7 +475,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     // this.walletService.closeWallet();
     // Close the windows to cause an application exit
     this.electron.remote.getGlobal("vars").exitFromRenderer = true;
-    this.electron.remote.getCurrentWindow.call( close() );
+    //this.electron.remote.getCurrentWindow.call( close() );
+    this.electron.remote.app.quit();
   }
 
   executePasswordCallback(){
