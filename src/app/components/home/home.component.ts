@@ -622,6 +622,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.error_message = "You entered an invalid password.";
       this.footer_visible = true;
     } else {
+      this.importKeys = this.walletService.decryptKeys(this.walletPassword, this.importKeys);
       this.importKeys.forEach(importKey => {
         this.walletService.importPrivateKey(importKey.secret, this.walletPassword);
       });
@@ -655,7 +656,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
             if(result && result.length>0) {
               this.privateKeyExportLocation = result[0];
               // get all decrypted private keys
-              let allPrivateKeys = this.walletService.decryptAllKeys(this.walletPassword);
+              //let allPrivateKeys = this.walletService.decryptAllKeys(this.walletPassword);
+              let allPrivateKeys = this.walletService.getAllKeys();
               // create a filename
               let filename = this.datePipe.transform(Date.now(), "yyyy-MM-dd-HH-mm-ss-") + this.currentWallet + '.keys';
               let keyFilePath = path.join(result[0], filename);

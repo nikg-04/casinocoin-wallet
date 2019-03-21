@@ -903,6 +903,30 @@ export class WalletService {
     }
   }
 
+  decryptKeys(password: string, allKeys: Array<LokiTypes.LokiKey>): Array<LokiTypes.LokiKey>{
+    let decryptedKeys: Array<LokiTypes.LokiKey> = [];
+    let cscCrypto = new CSCCrypto(password);
+    allKeys.forEach( (element, index, array) => {
+      // decrypt key
+      this.logger.debug("Decrypt["+index+"]: " + JSON.stringify(element));
+      let decodedSecret:string = cscCrypto.decrypt(element.secret);
+      let decodedKeypair = this.electron.remote.getGlobal("vars").cscKeypairs.deriveKeypair(decodedSecret);
+      // check if public key is the same
+      if(decodedKeypair.publicKey == element.publicKey){
+        // save decrypted values onto object
+        let decodedKey: LokiKey = {
+          accountID: element.accountID,
+          publicKey: decodedKeypair.publicKey,
+          privateKey: decodedKeypair.privateKey,
+          secret: decodedSecret,
+          encrypted: false
+        }
+        decryptedKeys.push(decodedKey);
+      }
+    });
+    return decryptedKeys;
+  }
+
   getDecryptPrivateKey(password: string, walletKey: LokiTypes.LokiKey): string {
     let cscCrypto = new CSCCrypto(password);
     let decodedSecret:string = cscCrypto.decrypt(walletKey.secret);
